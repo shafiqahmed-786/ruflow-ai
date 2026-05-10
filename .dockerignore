@@ -1,0 +1,78 @@
+# .dockerignore
+# Root-level — applies to the backend build context (docker build -f backend/Dockerfile .)
+# Keep this file lean: every excluded pattern reduces build context sent to the daemon.
+
+# ── Version control ───────────────────────────────────────────────────────────
+.git
+.gitignore
+.gitattributes
+.github
+
+# ── Secrets and environment ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+secrets/
+
+# ── Python bytecode & caches ──────────────────────────────────────────────────
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+node_modules/
+.next/
+frontend/node_modules/
+frontend/.next/
+
+# ── Local data / runtime dirs (mounted via volumes in compose) ────────────────
+chroma_data/
+model_cache/
+logs/
+*.log
+
+# ── Test artifacts ────────────────────────────────────────────────────────────
+.coverage
+htmlcov/
+.tox/
+*.egg-info/
+dist/
+build/
+
+# ── IDE / editor ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Docker-related (no need to include inside image) ─────────────────────────
+docker-compose*.yml
+**/Dockerfile*
+.dockerignore
+
+# ── Documentation ────────────────────────────────────────────────────────────
+README.md
+docs/
+*.md

@@ -1,0 +1,54 @@
+# frontend/.dockerignore
+# Applies to the frontend build context (docker build -f frontend/Dockerfile frontend/)
+# Scoped tightly: only exclude what's genuinely unnecessary inside the container build.
+
+# ── Version control ───────────────────────────────────────────────────────────
+.git
+.gitignore
+.gitattributes
+.github
+
+# ── Secrets and environment ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── Build output (rebuilt inside the container) ───────────────────────────────
+.next/
+out/
+
+# ── Node modules (reinstalled from package.json inside deps stage) ────────────
+node_modules/
+
+# ── Test / storybook ─────────────────────────────────────────────────────────
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+.storybook/
+storybook-static/
+coverage/
+
+# ── IDE / editor ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Documentation ────────────────────────────────────────────────────────────
+README.md
+docs/
+*.md
+
+# ── Docker files (don't need themselves inside the image) ─────────────────────
+Dockerfile*
+.dockerignore

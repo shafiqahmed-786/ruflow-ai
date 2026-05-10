@@ -1,0 +1,42 @@
+# ── Core orchestration ─────────────────────────────────────────────────────
+langgraph>=0.1.0
+langchain-core>=0.2.0
+
+# ── LLM clients ────────────────────────────────────────────────────────────
+# Using Google Gemini via google-generativeai
+
+# ── Config / settings ──────────────────────────────────────────────────────
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+
+# ── Database drivers ───────────────────────────────────────────────────────
+motor>=3.4.0           # async MongoDB
+pymongo>=4.7.0
+chromadb>=0.5.0
+
+# ── Embeddings ─────────────────────────────────────────────────────────────
+sentence-transformers>=3.0.0
+numpy>=1.26.0
+
+# ── Sparse retrieval ───────────────────────────────────────────────────────
+rank-bm25>=0.2.2
+
+# ── PDF / document parsing ─────────────────────────────────────────────────
+pymupdf>=1.24.0        # fitz
+unstructured>=0.14.0
+
+# ── NLP (optional but strongly recommended) ────────────────────────────────
+spacy>=3.7.0
+# After install: python -m spacy download en_core_web_sm
+
+# ── API layer ──────────────────────────────────────────────────────────────
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+
+# ── Async utilities ────────────────────────────────────────────────────────
+asyncio-throttle>=1.0.2
+
+# ── Testing ────────────────────────────────────────────────────────────────
+pytest>=8.2.0
+pytest-asyncio>=0.23.0

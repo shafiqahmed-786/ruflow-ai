@@ -1,0 +1,45 @@
+# ── Environment Variables ─────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Python ────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# ── Node / Next.js ───────────────────────────────────
+node_modules/
+.next/
+out/
+
+# ── Logs ──────────────────────────────────────────────
+*.log
+logs/
+
+# ── Build Artifacts ───────────────────────────────────
+dist/
+build/
+coverage/
+
+# ── IDE / OS ──────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ── Docker Volumes / Local Data ──────────────────────
+chroma_data/
+model_cache/
+
+# ── Misc ──────────────────────────────────────────────
+*.sqlite3
+*.db

@@ -1,0 +1,145 @@
+# docker-compose.yml
+# RuFlow — single-command deployment
+# Usage: docker-compose up --build
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+
+  # ── MongoDB ─────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: ruflow_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: ruflow_db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 15s
+      timeout: 10s
+      start_period: 30s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── ChromaDB ────────────────────────────────────────────────────────────────
+  chroma:
+    image: ghcr.io/chroma-core/chroma:0.4.24
+    container_name: ruflow_chroma
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/data
+    environment:
+      IS_PERSISTENT: "TRUE"
+      PERSIST_DIRECTORY: /data
+      ANONYMIZED_TELEMETRY: "FALSE"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 15s
+      timeout: 10s
+      start_period: 20s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── FastAPI Backend ──────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ruflow_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Override DB URIs to use internal Docker network hostnames
+      MONGODB_URI:            mongodb://mongo:27017
+      CHROMA_HOST:            chroma
+      CHROMA_PORT:            "8000"
+      CHROMA_PERSIST_DIR:     /app/chroma_data
+      EMBEDDING_CACHE_DIR:    /app/model_cache
+      LOG_LEVEL:              INFO
+      WORKERS:                "2"
+      DEBUG:                  "false"
+    volumes:
+      - chroma_data:/app/chroma_data
+      - model_cache:/app/model_cache
+      - backend_logs:/app/logs
+    depends_on:
+      mongo:
+        condition: service_healthy
+      chroma:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 90s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # ── Next.js Frontend ─────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ruflow_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # NEXT_PUBLIC_* is inlined at build time and used by the browser.
+      # It must point to the host-accessible backend URL (localhost).
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+
+      # API_URL is used server-side (SSR / Route Handlers) and can use the
+      # internal Docker network hostname for lower latency.
+      API_URL:             http://backend:8000/api/v1
+
+      NODE_ENV:            production
+      PORT:                "3000"
+      HOSTNAME:            "0.0.0.0"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ── Named volumes ──────────────────────────────────────────────────────────────
+volumes:
+  mongo_data:
+    driver: local
+  chroma_data:
+    driver: local
+  model_cache:
+    driver: local
+  backend_logs:
+    driver: local
