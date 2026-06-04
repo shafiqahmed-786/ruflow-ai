@@ -1,61 +1,56 @@
 "use client";
 
 // frontend/components/landing/Testimonials.tsx
-import { motion } from "framer-motion";
-import { Quote } from "lucide-react";
+import { motion }    from "framer-motion";
+import { Quote }     from "lucide-react";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { cn }        from "@/lib/utils";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Testimonial {
-  id:          number;
-  quote:       string;
-  author:      string;
-  title:       string;
+  name:        string;
+  role:        string;
   company:     string;
-  avatar:      string;
+  quote:       string;
   improvement: string;
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const TESTIMONIALS: Testimonial[] = [
   {
-    id:          1,
-    quote:       "Improved my ATS score from 61 to 89 in just 2 weeks. The agent breakdown showed exactly what was missing.",
-    author:      "Jane D.",
-    title:       "Product Manager",
-    company:     "TechCorp",
-    avatar:      "JD",
-    improvement: "61 → 89",
+    name:        "Aarav Sharma",
+    role:        "ML Engineer",
+    company:     "Applied AI Startup",
+    quote:       "RuFlow improved my ATS score from 61 to 89 and completely changed how I approach applications.",
+    improvement: "+28 ATS",
   },
   {
-    id:          2,
-    quote:       "Better than the $500 resume services I paid for. The multi-agent approach actually understands jobs better than humans.",
-    author:      "Alex K.",
-    title:       "Software Engineer",
-    company:     "Startup XYZ",
-    avatar:      "AK",
-    improvement: "Hired in 3 weeks",
+    name:        "Priya Verma",
+    role:        "Data Scientist",
+    company:     "Fintech Platform",
+    quote:       "The multi-agent pipeline rewrote my resume better than paid services I previously used.",
+    improvement: "3.2x Response Rate",
   },
   {
-    id:          3,
-    quote:       "Finally, something that explains WHY recruiters rejected me. The semantic matching showed the exact gaps. Game changer.",
-    author:      "Morgan L.",
-    title:       "UX Designer",
-    company:     "Design Co",
-    avatar:      "ML",
-    improvement: "3 interviews",
-  },
-  {
-    id:          4,
-    quote:       "The learning system kept improving each iteration. By round 3, my cover letter was genuinely better. Not generic.",
-    author:      "Priya S.",
-    title:       "Data Scientist",
-    company:     "Analytics Inc",
-    avatar:      "PS",
-    improvement: "2 offers",
+    name:        "Rahul Iyer",
+    role:        "Backend Engineer",
+    company:     "Cloud Infrastructure Company",
+    quote:       "The semantic retrieval layer actually helped me understand why recruiters ignored my previous applications.",
+    improvement: "+41% Match Accuracy",
   },
 ];
 
-// ── Testimonial Card ──────────────────────────────────────────────────────────
+// ── Avatar initials ───────────────────────────────────────────────────────────
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+// ── Testimonial card ──────────────────────────────────────────────────────────
 function TestimonialCard({
   testimonial,
   index,
@@ -65,52 +60,56 @@ function TestimonialCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.35, delay: index * 0.09, ease: "easeOut" }}
-      className="flex flex-col rounded-xl border border-[#252d48] bg-[#141829] p-6"
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.45, delay: index * 0.1, ease: "easeOut" }}
     >
-      {/* Quote icon */}
-      <Quote className="h-5 w-5 text-[#10a37f] mb-4 flex-shrink-0" />
+      <GlassCard
+        hover
+        glow
+        className="flex flex-col p-6 h-full group"
+      >
+        {/* Quote icon */}
+        <Quote
+          className="h-5 w-5 text-text-accent mb-5 flex-shrink-0"
+          aria-hidden="true"
+        />
 
-      {/* Quote text */}
-      <p className="text-sm text-[#e0e0e0] leading-relaxed flex-1 mb-6">
-        &ldquo;{testimonial.quote}&rdquo;
-      </p>
+        {/* Quote text */}
+        <blockquote className="text-sm text-text-secondary leading-relaxed flex-1 mb-6 italic">
+          &ldquo;{testimonial.quote}&rdquo;
+        </blockquote>
 
-      {/* Author row */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          {/* Avatar initials */}
-          <div
-            className="flex items-center justify-center w-9 h-9 rounded-full
-                       border border-[#252d48] bg-[#0f1324] flex-shrink-0"
-          >
-            <span className="font-mono text-xs font-semibold text-[#10a37f]">
-              {testimonial.avatar}
-            </span>
+        {/* Author row */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {/* Avatar */}
+            <div
+              className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-background-secondary flex-shrink-0"
+              aria-hidden="true"
+            >
+              <span className="font-mono text-xs font-semibold text-text-accent">
+                {getInitials(testimonial.name)}
+              </span>
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-text-primary leading-none mb-0.5">
+                {testimonial.name}
+              </p>
+              <p className="font-mono text-[10px] text-text-muted">
+                {testimonial.role} · {testimonial.company}
+              </p>
+            </div>
           </div>
 
-          <div>
-            <p className="text-sm font-semibold text-[#e0e0e0] leading-none mb-0.5">
-              {testimonial.author}
-            </p>
-            <p className="font-mono text-[10px] text-[#888888]">
-              {testimonial.title} · {testimonial.company}
-            </p>
-          </div>
+          {/* Improvement badge */}
+          <span className="flex-shrink-0 font-mono text-[10px] font-semibold px-2.5 py-1 rounded-full border border-amber/30 bg-amber-subtle text-amber whitespace-nowrap">
+            {testimonial.improvement}
+          </span>
         </div>
-
-        {/* Improvement badge */}
-        <span
-          className="flex-shrink-0 font-mono text-[10px] font-semibold
-                     px-2.5 py-1 rounded-full border border-amber-500/30
-                     bg-amber-500/10 text-amber-400 whitespace-nowrap"
-        >
-          {testimonial.improvement}
-        </span>
-      </div>
+      </GlassCard>
     </motion.div>
   );
 }
@@ -119,43 +118,43 @@ function TestimonialCard({
 export function Testimonials() {
   return (
     <section className="py-20 px-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-content mx-auto">
 
         {/* Header */}
         <div className="text-center mb-14">
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
+            viewport={{ once: true, amount: 0.1 }}
             transition={{ duration: 0.4 }}
-            className="font-mono text-xs text-[#10a37f] tracking-widest uppercase mb-3"
+            className="font-mono text-xs text-text-accent tracking-widest uppercase mb-3"
           >
             Social Proof
           </motion.p>
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.05 }}
-            className="text-3xl sm:text-4xl font-bold text-[#e0e0e0] tracking-tight"
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.4, delay: 0.06 }}
+            className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight"
           >
             Engineers who landed the role
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="mt-4 text-[#888888] text-sm max-w-md mx-auto leading-relaxed"
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.4, delay: 0.12 }}
+            className="mt-4 text-text-secondary text-sm max-w-md mx-auto leading-relaxed"
           >
             Real outcomes from real job seekers — not curated marketing copy.
           </motion.p>
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {TESTIMONIALS.map((t, i) => (
-            <TestimonialCard key={t.id} testimonial={t} index={i} />
+            <TestimonialCard key={t.name} testimonial={t} index={i} />
           ))}
         </div>
 

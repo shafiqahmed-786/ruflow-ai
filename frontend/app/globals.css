@@ -10,40 +10,63 @@
 
 @layer base {
 
+  /* ── Light theme (default) ──────────────────────────────────────────────── */
   :root,
-  
-  /* ── Light theme (default) ─────────────────────────────────────────────────────────── */
   .light {
-    --bg:               #f8f9fc;
-    --bg-secondary:     #f0f2f7;
+    /* Background hierarchy */
+    --bg:               #f5f6f8;
+    --bg-secondary:     #edf0f5;
+
+    /* Surface hierarchy */
     --surface:          #ffffff;
-    --surface-raised:   #f4f5f9;
-    --border:           #e2e6f0;
-    --border-strong:    #c8cfe0;
+    --surface-raised:   #f9fafc;
 
-    --accent:           #0e9070;
-    --accent-muted:     #0b7a60;
-    --accent-subtle:    rgba(14, 144, 112, 0.08);
-    --accent-glow:      rgba(14, 144, 112, 0.15);
-    --text-accent:      #0b7a60;
+    /* Borders */
+    --border:           #e8eaef;
+    --border-strong:    #d0d4de;
 
-    --text-primary:     #111827;
-    --text-secondary:   #374151;
-    --text-muted:       #6b7280;
+    /* Accent system */
+    --accent:           #0d8f6f;
+    --accent-muted:     #0b7a5f;
+    --accent-subtle:    rgba(13, 143, 111, 0.07);
+    --accent-glow:      rgba(13, 143, 111, 0.12);
+    --text-accent:      #0b7a5f;
 
-    --amber:            #b45309;
-    --amber-subtle:     rgba(180, 83,   9, 0.08);
+    /* Typography */
+    --text-primary:     #0f172a;
+    --text-secondary:   #3f4a5a;
+    --text-muted:       #7a8299;
 
-    --danger:           #e11d48;
-    --danger-subtle:    rgba(225, 29,  72, 0.08);
+    /* Status colors */
+    --amber:            #92580a;
+    --amber-subtle:     rgba(146, 88, 10, 0.07);
+
+    --danger:           #c81e3a;
+    --danger-subtle:    rgba(200, 30, 58, 0.07);
+
+    /* Elevation */
+    --shadow-card:
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 2px 8px rgba(0, 0, 0, 0.06),
+      0 0 0 1px rgba(0, 0, 0, 0.04);
+
+    --shadow-elevated:
+      0 4px 14px rgba(0, 0, 0, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.05),
+      0 0 0 1px rgba(0, 0, 0, 0.04);
+
+    --shadow-glow:
+      0 0 0 3px rgba(13, 143, 111, 0.12);
   }
 
-  /* ── Dark theme ────────────────────────────────────────────────── */
+  /* ── Dark theme ─────────────────────────────────────────────────────────── */
   .dark {
     --bg:               #0a0e27;
     --bg-secondary:     #0d1120;
+
     --surface:          #141829;
     --surface-raised:   #1a2038;
+
     --border:           #252d48;
     --border-strong:    #3a4560;
 
@@ -58,10 +81,22 @@
     --text-muted:       #888888;
 
     --amber:            #d97706;
-    --amber-subtle:     rgba(217, 119,  6, 0.10);
+    --amber-subtle:     rgba(217, 119, 6, 0.10);
 
     --danger:           #f43f5e;
-    --danger-subtle:    rgba(244,  63, 94, 0.10);
+    --danger-subtle:    rgba(244, 63, 94, 0.10);
+
+    /* Elevation */
+    --shadow-card:
+      0 1px 3px rgba(0, 0, 0, 0.40),
+      0 4px 24px rgba(0, 0, 0, 0.28);
+
+    --shadow-elevated:
+      0 6px 28px rgba(0, 0, 0, 0.45),
+      0 2px 6px rgba(0, 0, 0, 0.32);
+
+    --shadow-glow:
+      0 0 20px rgba(16, 163, 127, 0.20);
   }
 
   /* ── Base resets ─────────────────────────────────────────────────────────── */
@@ -81,14 +116,30 @@
     font-family: var(--font-sans), "IBM Plex Sans", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
   }
 
   /* ── Scrollbar ───────────────────────────────────────────────────────────── */
-  ::-webkit-scrollbar       { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
 
   /* ── Selection ───────────────────────────────────────────────────────────── */
   ::selection {
@@ -96,16 +147,29 @@
     color: var(--text-primary);
   }
 
-  /* ── Focus ring ─────────────────────────────────────────────────────────── */
+  /* ── Focus ring ──────────────────────────────────────────────────────────── */
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 6px;
   }
 }
 
-/* ── Component utilities ────────────────────────────────────────────────────── */
+/* ── Component utilities ──────────────────────────────────────────────────── */
 @layer components {
+
+  /* Theme-aware elevation */
+  .shadow-card-theme {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-elevated-theme {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .shadow-glow-theme {
+    box-shadow: var(--shadow-glow);
+  }
 
   /* Grid overlay for hero/dark sections */
   .grid-overlay {
@@ -138,8 +202,13 @@
   }
 
   @keyframes shimmer {
-    0%   { background-position: -200% 0; }
-    100% { background-position:  200% 0; }
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
   }
 
   /* Cursor blink */
@@ -148,5 +217,11 @@
     animation: blink 0.8s step-end infinite;
     color: var(--accent);
     margin-left: 2px;
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
   }
 }

@@ -1,148 +1,230 @@
 "use client";
 
 // frontend/components/landing/InsightsSection.tsx
+
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { BookOpen, Lightbulb, Sparkles, ArrowRight } from "lucide-react";
+import {
+  Brain,
+  Sparkles,
+  Database,
+  ArrowRight,
+} from "lucide-react";
+
+import { GlassCard } from "@/components/ui/GlassCard";
+import { cn } from "@/lib/utils";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+
 interface Insight {
-  id:       number;
-  title:    string;
-  excerpt:  string;
+  title: string;
+  description: string;
   category: string;
+  icon: React.ElementType;
   readTime: string;
-  date:     string;
-  author:   string;
-  icon:     React.ElementType;
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────────
+
 const INSIGHTS: Insight[] = [
   {
-    id:       1,
-    title:    "ATS Optimization Guide 2024",
-    excerpt:  "Master the algorithms recruiters use. Learn keyword density, formatting tricks, and system-level optimizations.",
-    category: "Guides",
-    readTime: "8 min read",
-    date:     "Jan 15, 2024",
-    author:   "RuFlow Team",
-    icon:     BookOpen,
-  },
-  {
-    id:       2,
-    title:    "Resume Engineering Best Practices",
-    excerpt:  "How to structure bullets for both human readers and ATS systems. Data-driven formatting that actually works.",
-    category: "Best Practices",
+    title: "How ATS Systems Actually Rank Resumes",
+    description:
+      "Master the algorithms recruiters use. Learn semantic scoring, keyword weighting, parsing behavior, and system-level optimization strategies.",
+    category: "ATS Intelligence",
+    icon: Brain,
     readTime: "6 min read",
-    date:     "Jan 10, 2024",
-    author:   "RuFlow Research",
-    icon:     Lightbulb,
   },
   {
-    id:       3,
-    title:    "AI Job Application Strategies",
-    excerpt:  "How to leverage multi-agent AI for career growth. Patterns learned from 50K+ applications.",
-    category: "Strategy",
-    readTime: "10 min read",
-    date:     "Jan 5, 2024",
-    author:   "RuFlow Insights",
-    icon:     Sparkles,
+    title: "Building Multi-Agent AI Systems for Career Infrastructure",
+    description:
+      "Why orchestration pipelines outperform single-prompt workflows for resume optimization, evaluation loops, and autonomous application intelligence.",
+    category: "AI Systems",
+    icon: Sparkles,
+    readTime: "8 min read",
+  },
+  {
+    title: "RAG Memory in Job Application Optimization",
+    description:
+      "Using retrieval-augmented generation and vector memory to continuously improve application quality from patterns learned across thousands of resumes.",
+    category: "RAG Architecture",
+    icon: Database,
+    readTime: "7 min read",
   },
 ];
 
-// ── Category color map ────────────────────────────────────────────────────────
-const CATEGORY_COLORS: Record<string, string> = {
-  Guides:         "text-emerald-400 bg-emerald-500/10 border-emerald-500/25",
-  "Best Practices": "text-blue-400   bg-blue-500/10   border-blue-500/25",
-  Strategy:       "text-amber-400  bg-amber-500/10  border-amber-500/25",
+// ── Category styles ───────────────────────────────────────────────────────────
+
+const CATEGORY_STYLE: Record<string, string> = {
+  "ATS Intelligence":
+    "text-text-accent bg-accent-subtle border-accent/25",
+
+  "AI Systems":
+    "text-amber bg-amber-subtle border-amber/25",
+
+  "RAG Architecture":
+    "text-text-primary bg-surface-raised border-border",
 };
 
-// ── Insight Card ──────────────────────────────────────────────────────────────
-function InsightCard({ insight, index }: { insight: Insight; index: number }) {
-  const Icon       = insight.icon;
-  const badgeClass = CATEGORY_COLORS[insight.category] ?? "text-[#888888] bg-[#252d48] border-[#252d48]";
+// ── Card ──────────────────────────────────────────────────────────────────────
+
+function InsightCard({
+  insight,
+  index,
+}: {
+  insight: Insight;
+  index: number;
+}) {
+  const Icon = insight.icon;
+
+  const badgeStyle =
+    CATEGORY_STYLE[insight.category] ??
+    "text-text-muted bg-surface border-border";
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.35, delay: index * 0.09, ease: "easeOut" }}
-      className="group flex flex-col rounded-xl border border-[#252d48] bg-[#141829]
-                 p-6 hover:border-[#10a37f]/30 transition-colors duration-200"
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{
+        duration: 0.45,
+        delay: index * 0.1,
+        ease: "easeOut",
+      }}
     >
-      {/* Icon + category */}
-      <div className="flex items-center justify-between mb-5">
+      <GlassCard
+        hover
+        className="group flex h-full cursor-pointer flex-col p-6"
+      >
+        {/* Top Row */}
+        <div className="mb-5 flex items-center justify-between">
+          <div
+            className="
+              flex h-10 w-10 flex-shrink-0 items-center justify-center
+              rounded-lg border border-accent/25 bg-accent-subtle
+              transition-colors duration-200
+              group-hover:border-accent/50
+            "
+          >
+            <Icon
+              className="h-5 w-5 text-text-accent"
+              aria-hidden="true"
+            />
+          </div>
+
+          <span
+            className={cn(
+              "rounded-full border px-2.5 py-1",
+              "font-mono text-[10px] font-semibold uppercase tracking-wider",
+              badgeStyle
+            )}
+          >
+            {insight.category}
+          </span>
+        </div>
+
+        {/* Title */}
+        <h3
+          className="
+            mb-2 text-sm font-semibold leading-snug text-text-primary
+            transition-colors duration-200
+            group-hover:text-text-accent
+          "
+        >
+          {insight.title}
+        </h3>
+
+        {/* Description */}
+        <p
+          className="
+            mb-5 flex-1 text-xs leading-relaxed text-text-secondary
+          "
+        >
+          {insight.description}
+        </p>
+
+        {/* Footer */}
         <div
-          className="flex items-center justify-center w-10 h-10 rounded-lg
-                     border border-[#10a37f]/25 bg-[#10a37f]/10"
+          className="
+            flex items-center justify-between
+            border-t border-border pt-4
+          "
         >
-          <Icon className="h-5 w-5 text-[#10a37f]" />
+          <span
+            className="
+              font-mono text-[10px] text-text-muted
+            "
+          >
+            {insight.readTime}
+          </span>
+
+          <Link
+            href="/blog"
+            aria-label={`Read: ${insight.title}`}
+            className="
+              inline-flex items-center gap-1
+              font-mono text-[10px]
+              text-text-accent
+              transition-colors duration-150
+              hover:text-accent-muted
+            "
+          >
+            Read
+
+            <ArrowRight
+              className="
+                h-3 w-3
+                transition-transform duration-200
+                group-hover:translate-x-0.5
+              "
+              aria-hidden="true"
+            />
+          </Link>
         </div>
-        <span
-          className={`font-mono text-[10px] tracking-wider uppercase px-2.5 py-1
-                      rounded-full border font-semibold ${badgeClass}`}
-        >
-          {insight.category}
-        </span>
-      </div>
-
-      {/* Title */}
-      <h3 className="text-sm font-semibold text-[#e0e0e0] mb-2 leading-snug">
-        {insight.title}
-      </h3>
-
-      {/* Excerpt */}
-      <p className="text-xs text-[#888888] leading-relaxed flex-1 mb-5">
-        {insight.excerpt}
-      </p>
-
-      {/* Meta row */}
-      <div className="flex items-center justify-between pt-4 border-t border-[#252d48]">
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[10px] text-[#888888]">{insight.readTime}</span>
-          <span className="w-px h-3 bg-[#252d48]" />
-          <span className="font-mono text-[10px] text-[#888888]">{insight.date}</span>
-        </div>
-        <Link
-          href="/blog"
-          className="flex items-center gap-1 font-mono text-[10px] text-[#10a37f]
-                     hover:text-emerald-300 transition-colors duration-150"
-        >
-          Read
-          <ArrowRight className="h-3 w-3 transition-transform duration-150
-                                 group-hover:translate-x-0.5" />
-        </Link>
-      </div>
+      </GlassCard>
     </motion.article>
   );
 }
 
 // ── Section ───────────────────────────────────────────────────────────────────
+
 export function InsightsSection() {
   return (
-    <section className="py-20 px-6 bg-[#0d1120]">
-      <div className="max-w-7xl mx-auto">
-
+    <section
+      id="insights"
+      className="bg-background-secondary px-6 py-20"
+    >
+      <div className="max-w-content mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+        <div
+          className="
+            mb-12 flex flex-col justify-between gap-4
+            sm:flex-row sm:items-end
+          "
+        >
           <div>
             <motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.1 }}
               transition={{ duration: 0.4 }}
-              className="font-mono text-xs text-[#10a37f] tracking-widest uppercase mb-3"
+              className="
+                mb-3 font-mono text-xs uppercase tracking-widest
+                text-text-accent
+              "
             >
               Insights
             </motion.p>
+
             <motion.h2
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: 0.05 }}
-              className="text-3xl sm:text-4xl font-bold text-[#e0e0e0] tracking-tight"
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ duration: 0.4, delay: 0.06 }}
+              className="
+                text-3xl font-bold tracking-tight text-text-primary
+                sm:text-4xl
+              "
             >
               From the research team
             </motion.h2>
@@ -151,27 +233,45 @@ export function InsightsSection() {
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.1 }}
+            viewport={{ once: true, amount: 0.1 }}
+            transition={{ duration: 0.4, delay: 0.12 }}
           >
             <Link
               href="/blog"
-              className="inline-flex items-center gap-2 font-mono text-xs
-                         text-[#888888] hover:text-[#e0e0e0] transition-colors duration-150"
+              className="
+                inline-flex items-center gap-1.5
+                font-mono text-xs
+                text-text-muted
+                transition-colors duration-150
+                hover:text-text-primary
+              "
             >
               View all posts
-              <ArrowRight className="h-3.5 w-3.5" />
+
+              <ArrowRight
+                className="h-3.5 w-3.5"
+                aria-hidden="true"
+              />
             </Link>
           </motion.div>
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {INSIGHTS.map((insight, i) => (
-            <InsightCard key={insight.id} insight={insight} index={i} />
+        <div
+          className="
+            grid grid-cols-1 gap-5
+            md:grid-cols-2
+            lg:grid-cols-3
+          "
+        >
+          {INSIGHTS.map((insight, index) => (
+            <InsightCard
+              key={insight.title}
+              insight={insight}
+              index={index}
+            />
           ))}
         </div>
-
       </div>
     </section>
   );

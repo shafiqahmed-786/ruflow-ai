@@ -1,4 +1,3 @@
-
 "use client";
 
 // frontend/components/landing/Navigation.tsx
@@ -28,12 +27,15 @@ const NAV_ITEMS: NavItem[] = [
 // ── Desktop nav link ──────────────────────────────────────────────────────────
 function NavLink({ item }: { item: NavItem }) {
   const isAnchor = item.href.startsWith("#");
-  const cls =
-    "relative font-mono text-xs text-text-muted tracking-wide " +
-    "hover:text-text-primary transition-colors duration-150 " +
-    "after:absolute after:bottom-[-2px] after:left-0 after:h-px after:w-0 " +
-    "after:bg-accent after:transition-[width] after:duration-200 " +
-    "hover:after:w-full";
+  const cls = cn(
+    "relative font-mono text-xs text-text-muted tracking-wide",
+    "hover:text-text-primary transition-colors duration-150",
+    // Underline indicator on hover
+    "after:absolute after:bottom-[-3px] after:left-0",
+    "after:h-px after:w-0 after:bg-accent",
+    "after:transition-[width] after:duration-250",
+    "hover:after:w-full",
+  );
 
   return isAnchor ? (
     <a href={item.href} className={cls}>{item.label}</a>
@@ -45,10 +47,12 @@ function NavLink({ item }: { item: NavItem }) {
 // ── Mobile nav link ───────────────────────────────────────────────────────────
 function MobileNavLink({ item, onClose }: { item: NavItem; onClose: () => void }) {
   const isAnchor = item.href.startsWith("#");
-  const cls =
-    "block w-full px-4 py-3 font-mono text-sm text-text-secondary " +
-    "hover:text-text-primary hover:bg-surface-raised " +
-    "border-b border-border last:border-0 transition-colors duration-150";
+  const cls = cn(
+    "block w-full px-5 py-3.5 font-mono text-sm text-text-secondary",
+    "hover:text-text-primary hover:bg-surface-raised",
+    "border-b border-border last:border-0",
+    "transition-colors duration-150",
+  );
 
   return isAnchor ? (
     <a href={item.href} className={cls} onClick={onClose}>{item.label}</a>
@@ -59,14 +63,14 @@ function MobileNavLink({ item, onClose }: { item: NavItem; onClose: () => void }
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export function Navigation() {
-  const [isOpen,    setIsOpen]    = useState(false);
-  const [scrolled,  setScrolled]  = useState(false);
+  const [isOpen,   setIsOpen]   = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Scroll-based navbar opacity — threshold only, no per-pixel re-renders
+  // Threshold-based scroll state — no per-pixel re-renders
   useEffect(() => {
     const onScroll = () => {
-      const past = window.scrollY > 20;
+      const past = window.scrollY > 16;
       setScrolled((prev) => (prev !== past ? past : prev));
     };
     if (typeof window !== "undefined") {
@@ -86,9 +90,7 @@ export function Navigation() {
         setIsOpen(false);
       }
     };
-    if (typeof window !== "undefined") {
-      document.addEventListener("mousedown", onMouseDown);
-    }
+    if (typeof window !== "undefined") document.addEventListener("mousedown", onMouseDown);
     return () => {
       if (typeof window !== "undefined") document.removeEventListener("mousedown", onMouseDown);
     };
@@ -102,8 +104,8 @@ export function Navigation() {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled
-          ? "border-b border-border bg-background/95 backdrop-blur-md shadow-card-dark"
-          : "border-b border-transparent bg-transparent"
+          ? "border-b border-border bg-background/96 backdrop-blur-xl shadow-card-dark"
+          : "border-b border-transparent bg-transparent backdrop-blur-sm",
       )}
     >
       <div className="max-w-content mx-auto px-6">
@@ -115,9 +117,14 @@ export function Navigation() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
           >
-            <Link href="/" onClick={close} className="flex items-center gap-2.5 flex-shrink-0">
+            <Link
+              href="/"
+              onClick={close}
+              className="flex items-center gap-2.5 flex-shrink-0"
+              aria-label="RuFlow home"
+            >
               <div className="flex items-center justify-center w-7 h-7 rounded-md bg-accent-subtle border border-accent/30">
-                <Zap className="h-3.5 w-3.5 text-text-accent" />
+                <Zap className="h-3.5 w-3.5 text-text-accent" aria-hidden="true" />
               </div>
               <span className="font-mono text-sm font-bold text-text-primary tracking-widest">
                 RUFLOW
@@ -131,6 +138,7 @@ export function Navigation() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
             className="hidden md:flex items-center gap-7"
+            aria-label="Main navigation"
           >
             {NAV_ITEMS.map((item) => (
               <NavLink key={item.label} item={item} />
@@ -150,10 +158,17 @@ export function Navigation() {
               href="https://github.com"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="GitHub"
-              className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-surface text-text-muted hover:text-text-primary hover:border-border-strong transition-colors duration-150"
+              aria-label="View source on GitHub"
+              className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-md",
+                "border border-border bg-surface",
+                "text-text-muted hover:text-text-primary hover:border-border-strong",
+                "transition-colors duration-150",
+                "focus-visible:outline focus-visible:outline-2",
+                "focus-visible:outline-offset-2 focus-visible:outline-accent",
+              )}
             >
-              <Github className="h-3.5 w-3.5" />
+              <Github className="h-3.5 w-3.5" aria-hidden="true" />
             </a>
 
             <Button href="/dashboard" variant="primary" size="sm">
@@ -165,10 +180,21 @@ export function Navigation() {
           <button
             type="button"
             onClick={() => setIsOpen((p) => !p)}
-            className="md:hidden flex items-center justify-center w-9 h-9 rounded-md border border-border bg-surface text-text-muted hover:text-text-primary transition-colors duration-150"
-            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isOpen}
+            className={cn(
+              "md:hidden flex items-center justify-center w-9 h-9 rounded-md",
+              "border border-border bg-surface",
+              "text-text-muted hover:text-text-primary hover:border-border-strong",
+              "transition-colors duration-150",
+              "focus-visible:outline focus-visible:outline-2",
+              "focus-visible:outline-offset-2 focus-visible:outline-accent",
+            )}
           >
-            {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            {isOpen
+              ? <X className="h-4 w-4" aria-hidden="true" />
+              : <Menu className="h-4 w-4" aria-hidden="true" />
+            }
           </button>
         </div>
       </div>
@@ -182,15 +208,23 @@ export function Navigation() {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
             className="md:hidden absolute top-full left-0 right-0 z-40 border-b border-border bg-background shadow-card-dark"
+            aria-label="Mobile navigation menu"
           >
             <nav>
               {NAV_ITEMS.map((item) => (
                 <MobileNavLink key={item.label} item={item} onClose={close} />
               ))}
             </nav>
+
+            {/* Mobile actions */}
             <div className="flex items-center justify-between gap-3 p-4 border-t border-border">
               <ThemeToggle />
-              <Button href="/dashboard" variant="primary" size="sm" className="flex-1">
+              <Button
+                href="/dashboard"
+                variant="primary"
+                size="sm"
+                className="flex-1"
+              >
                 Start Building
               </Button>
             </div>

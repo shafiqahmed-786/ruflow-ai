@@ -10,29 +10,39 @@
     "strict": false,
     "noEmit": true,
     "incremental": true,
+
     "module": "esnext",
+    "target": "ES2017",
+
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
+
     "jsx": "preserve",
+
     "plugins": [
       {
         "name": "next"
       }
     ],
+
     "strictNullChecks": true,
+
     "baseUrl": ".",
+
     "paths": {
       "@/*": ["./*"]
     }
   },
+
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
   ],
+
   "exclude": [
     "node_modules"
   ]
