@@ -196,7 +196,6 @@ export const Button = React.forwardRef<
         <Link
           href={href}
           className={classes}
-          onClick={onClick}
         >
           <ButtonContent loading={loading}>
             {children}
