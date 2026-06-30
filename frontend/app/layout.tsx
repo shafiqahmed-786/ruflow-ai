@@ -1,13 +1,9 @@
-// frontend/app/layout.tsx
-// Server Component — layout only. No interactive logic here.
-// ThemeProvider (client) wraps children to keep this file a pure Server Component.
-
+// frontend/app/layout.tsx — CareerOS AI
 import type { Metadata }      from "next";
 import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider }      from "@/providers/ThemeProvider";
 import "./globals.css";
 
-// ── Fonts ──────────────────────────────────────────────────────────────────────
 const ibmPlexSans = IBM_Plex_Sans({
   subsets:  ["latin"],
   weight:   ["300", "400", "500", "600", "700"],
@@ -22,36 +18,38 @@ const jetbrainsMono = JetBrains_Mono({
   display:  "swap",
 });
 
-// ── Metadata ───────────────────────────────────────────────────────────────────
 export const metadata: Metadata = {
   title: {
-    default:  "RuFlow — AI-Powered Job Application Intelligence",
-    template: "%s · RuFlow",
+    default:  "CareerOS AI — Job Application Command Centre",
+    template: "%s · CareerOS AI",
   },
   description:
-    "Multi-agent AI system that optimizes resumes, generates cover letters, " +
-    "scores ATS compatibility, and learns from your application history.",
+    "CareerOS AI — the complete AI-powered job search command centre. " +
+    "Track applications, prepare for interviews, research companies, manage recruiter relationships, and optimize resumes with a multi-agent pipeline.",
   keywords: [
+    "AI career platform",
     "AI resume optimizer",
     "ATS score checker",
     "multi-agent AI",
-    "job application AI",
-    "cover letter generator",
+    "job application tracker",
+    "interview preparation AI",
+    "recruiter CRM",
+    "offer tracker",
+    "CareerOS AI",
   ],
   openGraph: {
-    title:       "RuFlow — AI-Powered Job Application Intelligence",
-    description: "Autonomous multi-agent system for ATS-optimized job applications.",
+    title:       "CareerOS AI — Job Application Command Centre",
+    description: "Complete AI-powered career management platform with multi-agent intelligence.",
     type:        "website",
-    siteName:    "RuFlow",
+    siteName:    "CareerOS AI",
   },
   twitter: {
     card:        "summary_large_image",
-    title:       "RuFlow — AI-Powered Job Application Intelligence",
-    description: "Autonomous multi-agent system for ATS-optimized job applications.",
+    title:       "CareerOS AI — Job Application Command Centre",
+    description: "Complete AI-powered career management with multi-agent intelligence.",
   },
 };
 
-// ── Root layout ────────────────────────────────────────────────────────────────
 export default function RootLayout({
   children,
 }: {
@@ -60,15 +58,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      // next-themes will hydrate and manage the class after mount.
       className={` ${ibmPlexSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      {/*
-        suppressHydrationWarning on <body> because next-themes injects a
-        data-theme attribute client-side, which would otherwise cause a
-        React hydration warning.
-      */}
       <body suppressHydrationWarning>
         <ThemeProvider>
           {children}

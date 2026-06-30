@@ -3,7 +3,10 @@ langgraph>=0.1.0
 langchain-core>=0.2.0
 
 # ── LLM clients ────────────────────────────────────────────────────────────
-# Using Google Gemini via google-generativeai
+# NOTE: google-generativeai is deprecated; keeping for now as llm_service.py
+# uses its API surface (GenerativeModel, GenerationConfig, etc.).
+# Migration to google-genai should happen in a follow-up PR.
+google-generativeai>=0.7.0
 
 # ── Config / settings ──────────────────────────────────────────────────────
 pydantic>=2.7.0
@@ -25,7 +28,7 @@ rank-bm25>=0.2.2
 pymupdf>=1.24.0        # fitz
 unstructured>=0.14.0
 
-# ── NLP (optional but strongly recommended) ────────────────────────────────
+# ── NLP ────────────────────────────────────────────────────────────────────
 spacy>=3.7.0
 # After install: python -m spacy download en_core_web_sm
 
@@ -33,6 +36,7 @@ spacy>=3.7.0
 fastapi>=0.111.0
 uvicorn[standard]>=0.30.0
 python-multipart>=0.0.9
+httpx>=0.27.0          # FIX: was used but missing from requirements
 
 # ── Async utilities ────────────────────────────────────────────────────────
 asyncio-throttle>=1.0.2

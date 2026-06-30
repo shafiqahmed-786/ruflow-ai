@@ -1,9 +1,9 @@
 """
 backend/main.py
 
-FastAPI application entry point.
-Mounts all routers, configures CORS, manages service lifespan,
-and wires the /health endpoint directly.
+CareerOS AI — FastAPI application entry point.
+Mounts all routers (original RuFlow + new CareerOS features),
+configures CORS, manages service lifespan, and wires health probes.
 """
 
 from __future__ import annotations
@@ -19,13 +19,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.config.settings import get_settings
+
+# ── Original RuFlow routers (PRESERVED — do not remove) ────────────────────
 from backend.routes.applications import router as applications_router
+from backend.routes.memory import router as memory_router
+from backend.routes.recommendations import router as recommendations_router
+
+# ── CareerOS AI extension routers ──────────────────────────────────────────
+from backend.routes.interviews import router as interviews_router
+from backend.routes.recruiters import router as recruiters_router
+from backend.routes.companies import router as companies_router
+from backend.routes.offers import router as offers_router
+from backend.routes.analytics import router as analytics_router
+from backend.routes.copilot import router as copilot_router
+
 from backend.services.memory_service import get_memory_service
 from backend.services.vector_db_service import get_embedding_service
-
-# ---------------------------------------------------------------------------
-# Logging
-# ---------------------------------------------------------------------------
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,20 +45,13 @@ logger = logging.getLogger(__name__)
 
 cfg = get_settings()
 
-# ---------------------------------------------------------------------------
-# Lifespan — startup / shutdown
-# ---------------------------------------------------------------------------
 
+# ── Lifespan ─────────────────────────────────────────────────────────────────
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Runs once at startup (before yield) and once at shutdown (after yield).
-    Pre-warms singletons so the first real request is not slow.
-    """
-    logger.info("=== RuFlow API starting up ===")
+    logger.info("=== CareerOS AI starting up ===")
 
-    # Validate mandatory secrets early — will raise RuntimeError if missing
     try:
         cfg.validate_critical()
         logger.info("API key validation passed.")
@@ -57,7 +59,6 @@ async def lifespan(app: FastAPI):
         logger.critical("Startup aborted: %s", exc)
         raise
 
-    # Pre-warm embedding model (downloads weights on first use)
     try:
         embed_svc = get_embedding_service()
         await embed_svc.embed("warm-up")
@@ -65,7 +66,6 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Embedding pre-warm failed (non-fatal): %s", exc)
 
-    # Verify MongoDB connectivity
     try:
         memory = get_memory_service()
         await memory.mongo._ensure_connected()
@@ -73,36 +73,29 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("MongoDB unavailable at startup (non-fatal): %s", exc)
 
-    # Store startup timestamp for uptime reporting
     app.state.started_at = time.time()
-
-    logger.info("=== RuFlow API ready ===")
+    logger.info("=== CareerOS AI ready ===")
     yield
 
-    # ── Shutdown ──────────────────────────────────────────────────────
-    logger.info("=== RuFlow API shutting down ===")
+    logger.info("=== CareerOS AI shutting down ===")
     try:
         memory = get_memory_service()
         await memory.close()
-        logger.info("Memory service closed.")
     except Exception as exc:
         logger.warning("Error during memory service shutdown: %s", exc)
 
 
-# ---------------------------------------------------------------------------
-# App factory
-# ---------------------------------------------------------------------------
-
+# ── App factory ───────────────────────────────────────────────────────────────
 
 def create_app() -> FastAPI:
-    """Create and configure the FastAPI application instance."""
     application = FastAPI(
-        title=cfg.app.app_name,
-        version=cfg.app.app_version,
+        title="CareerOS AI",
+        version="2.0.0",
         description=(
-            "RuFlow — Autonomous Multi-Agent Job Intelligence System. "
-            "Parses resumes and job descriptions, retrieves contextual knowledge, "
-            "generates tailored application materials, and iteratively improves them."
+            "CareerOS AI — Complete AI-powered Job Application Command Centre. "
+            "Multi-agent LangGraph pipeline: resume tailoring, JD analysis, "
+            "interview prep, recruiter CRM, company intelligence, offer tracking, "
+            "and iterative ATS score optimization."
         ),
         docs_url="/docs",
         redoc_url="/redoc",
@@ -110,7 +103,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # ── CORS ──────────────────────────────────────────────────────────
+    # CORS
     application.add_middleware(
         CORSMiddleware,
         allow_origins=cfg.app.cors_origins,
@@ -119,16 +112,15 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # ── Request timing middleware ──────────────────────────────────────
+    # Request timing
     @application.middleware("http")
     async def add_process_time_header(request: Request, call_next):
         start = time.monotonic()
         response = await call_next(request)
-        elapsed = time.monotonic() - start
-        response.headers["X-Process-Time"] = f"{elapsed:.4f}s"
+        response.headers["X-Process-Time"] = f"{time.monotonic() - start:.4f}s"
         return response
 
-    # ── Global exception handler ───────────────────────────────────────
+    # Global exception handler
     @application.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
         logger.error("Unhandled exception on %s %s: %s", request.method, request.url.path, exc)
@@ -137,70 +129,42 @@ def create_app() -> FastAPI:
             content={"detail": "Internal server error", "error": str(exc)},
         )
 
-    # ── Routers ───────────────────────────────────────────────────────
-    application.include_router(
-        applications_router,
-        prefix=cfg.app.api_prefix,
-    )
+    prefix = cfg.app.api_prefix  # e.g. "/api/v1"
 
-    # ── Health endpoint ────────────────────────────────────────────────
-    @application.get(
-        "/health",
-        tags=["Health"],
-        summary="Liveness probe",
-        response_description="Service health status",
-    )
+    # ── Original RuFlow routers (PRESERVED) ──────────────────────────────
+    application.include_router(applications_router, prefix=prefix)
+    application.include_router(memory_router, prefix=prefix)
+    application.include_router(recommendations_router, prefix=prefix)
+
+    # ── CareerOS AI extension routers ─────────────────────────────────────
+    application.include_router(interviews_router, prefix=prefix)
+    application.include_router(recruiters_router, prefix=prefix)
+    application.include_router(companies_router, prefix=prefix)
+    application.include_router(offers_router, prefix=prefix)
+    application.include_router(analytics_router, prefix=prefix)
+    application.include_router(copilot_router, prefix=prefix)
+
+    # ── Health probes ─────────────────────────────────────────────────────
+    @application.get("/health", tags=["Health"], summary="Liveness probe")
     async def health() -> Dict[str, Any]:
-        """
-        Kubernetes-compatible liveness / readiness probe.
-
-        Returns basic service metadata and uptime so infrastructure
-        orchestrators can determine whether the pod is healthy.
-        """
-        uptime_seconds = (
+        uptime = (
             round(time.time() - application.state.started_at, 1)
-            if hasattr(application.state, "started_at")
-            else None
+            if hasattr(application.state, "started_at") else None
         )
-        return {
-            "status":  "ok",
-            "service": cfg.app.app_name,
-            "version": cfg.app.app_version,
-            "uptime_seconds": uptime_seconds,
-        }
+        return {"status": "ok", "service": "CareerOS AI", "version": "2.0.0", "uptime_seconds": uptime}
 
-    # Duplicate health under API prefix for consistency
-    @application.get(
-        f"{cfg.app.api_prefix}/health",
-        tags=["Health"],
-        summary="API-prefixed liveness probe",
-        include_in_schema=False,
-    )
+    @application.get(f"{prefix}/health", tags=["Health"], include_in_schema=False)
     async def health_prefixed() -> Dict[str, Any]:
-        uptime_seconds = (
+        uptime = (
             round(time.time() - application.state.started_at, 1)
-            if hasattr(application.state, "started_at")
-            else None
+            if hasattr(application.state, "started_at") else None
         )
-        return {
-            "status":  "ok",
-            "service": cfg.app.app_name,
-            "version": cfg.app.app_version,
-            "uptime_seconds": uptime_seconds,
-        }
+        return {"status": "ok", "service": "CareerOS AI", "version": "2.0.0", "uptime_seconds": uptime}
 
     return application
 
 
-# ---------------------------------------------------------------------------
-# Module-level app instance (imported by Uvicorn / Gunicorn)
-# ---------------------------------------------------------------------------
-
 app = create_app()
-
-# ---------------------------------------------------------------------------
-# Dev entrypoint
-# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     uvicorn.run(

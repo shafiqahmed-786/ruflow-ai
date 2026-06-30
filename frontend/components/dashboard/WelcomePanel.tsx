@@ -1,19 +1,18 @@
 "use client";
 
-// frontend/components/dashboard/WelcomePanel.tsx
+// frontend/components/dashboard/WelcomePanel.tsx — CareerOS v2.0
 import { motion }    from "framer-motion";
-import { Activity, Brain, Database, TrendingUp, Upload, Zap } from "lucide-react";
+import { Activity, Brain, Database, TrendingUp, Upload, Zap, Target, Users } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Button }    from "@/components/ui/Button";
 import { cn }        from "@/lib/utils";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
 interface Metric {
-  label:       string;
-  value:       string;
-  trend:       string;
-  positive:    boolean;
-  icon:        React.ElementType;
+  label:    string;
+  value:    string;
+  trend:    string;
+  positive: boolean;
+  icon:     React.ElementType;
 }
 
 interface ActiveAgent {
@@ -21,23 +20,21 @@ interface ActiveAgent {
   status: "active" | "idle";
 }
 
-// ── Data ──────────────────────────────────────────────────────────────────────
 const METRICS: Metric[] = [
-  { label: "Applications Optimized", value: "24",   trend: "+3 this week", positive: true,  icon: TrendingUp },
-  { label: "Avg ATS Score",          value: "86.4", trend: "+12.1 avg gain", positive: true, icon: Zap        },
-  { label: "Retrieval Accuracy",     value: "94%",  trend: "semantic match", positive: true, icon: Database   },
-  { label: "Active Sessions",        value: "2",    trend: "running now",    positive: true, icon: Activity   },
+  { label: "Applications Tracked", value: "24",   trend: "+3 this week",    positive: true,  icon: TrendingUp },
+  { label: "Avg ATS Score",        value: "86.4", trend: "+12.1 avg gain",  positive: true,  icon: Zap        },
+  { label: "Interview Rate",       value: "29%",  trend: "+8% this month",  positive: true,  icon: Target     },
+  { label: "Active Recruiters",    value: "6",    trend: "3 new this week",  positive: true,  icon: Users      },
 ];
 
 const ACTIVE_AGENTS: ActiveAgent[] = [
-  { name: "Planner",      status: "active" },
-  { name: "JD Analyzer",  status: "active" },
-  { name: "Retrieval",    status: "idle"   },
-  { name: "Resume Tailor",status: "idle"   },
-  { name: "Evaluator",    status: "idle"   },
+  { name: "Planner",        status: "active" },
+  { name: "JD Analyzer",   status: "active" },
+  { name: "Resume Tailor",  status: "idle"   },
+  { name: "Interview Coach",status: "idle"   },
+  { name: "Career Advisor", status: "idle"   },
 ];
 
-// ── Metric card ────────────────────────────────────────────────────────────────
 function MetricCard({ metric, index }: { metric: Metric; index: number }) {
   const Icon = metric.icon;
   return (
@@ -64,11 +61,9 @@ function MetricCard({ metric, index }: { metric: Metric; index: number }) {
   );
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
 export function WelcomePanel() {
   return (
     <GlassCard className="relative overflow-hidden p-6">
-      {/* Subtle radial glow in dark mode */}
       <div
         className="absolute top-0 right-0 w-64 h-64 pointer-events-none"
         aria-hidden="true"
@@ -99,7 +94,7 @@ export function WelcomePanel() {
               transition={{ duration: 0.4, delay: 0.05 }}
               className="text-xl font-bold text-text-primary tracking-tight"
             >
-              Welcome back to RuFlow
+              Welcome to CareerOS AI
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}
@@ -107,7 +102,7 @@ export function WelcomePanel() {
               transition={{ duration: 0.4, delay: 0.1 }}
               className="font-mono text-xs text-text-muted mt-1"
             >
-              Your AI career infrastructure is ready.
+              Your complete AI-powered job search command centre is ready.
             </motion.p>
           </div>
 
@@ -118,11 +113,11 @@ export function WelcomePanel() {
             transition={{ duration: 0.4, delay: 0.12 }}
             className="flex items-center gap-2 flex-shrink-0"
           >
-            <Button href="/dashboard/pipeline" variant="secondary" size="sm">
+            <Button href="/dashboard/copilot" variant="secondary" size="sm">
               <Brain className="h-3.5 w-3.5" aria-hidden="true" />
-              View Pipeline
+              AI Copilot
             </Button>
-            <Button href="/dashboard/applications" variant="primary" size="sm">
+            <Button href="/dashboard/applications/new" variant="primary" size="sm">
               <Upload className="h-3.5 w-3.5" aria-hidden="true" />
               New Application
             </Button>

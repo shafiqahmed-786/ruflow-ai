@@ -20,6 +20,13 @@ import {
   Settings,
   X,
   Zap,
+  Calendar,
+  Users,
+  Building2,
+  Trophy,
+  MessageSquare,
+  Target,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +37,11 @@ interface NavItem {
   icon:  React.ElementType;
 }
 
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
 interface SidebarContextValue {
   isOpen:  boolean;
   open:    () => void;
@@ -38,14 +50,44 @@ interface SidebarContextValue {
 }
 
 // ── Navigation data ────────────────────────────────────────────────────────────
-const NAV_ITEMS: NavItem[] = [
-  { label: "Overview",       href: "/dashboard",              icon: LayoutDashboard },
-  { label: "Applications",   href: "/dashboard/applications", icon: Briefcase       },
-  { label: "AI Pipeline",    href: "/dashboard/pipeline",     icon: GitMerge        },
-  { label: "Resume Memory",  href: "/dashboard/memory",       icon: BrainCircuit    },
-  { label: "ATS Analytics",  href: "/dashboard/analytics",    icon: LineChart       },
-  { label: "Settings",       href: "/dashboard/settings",     icon: Settings        },
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: "Workspace",
+    items: [
+      { label: "Overview",       href: "/dashboard",              icon: LayoutDashboard },
+      { label: "Applications",   href: "/dashboard/applications", icon: Briefcase       },
+      { label: "AI Pipeline",    href: "/dashboard/pipeline",     icon: GitMerge        },
+      { label: "Copilot",        href: "/dashboard/copilot",      icon: MessageSquare   },
+    ],
+  },
+  {
+    label: "Career",
+    items: [
+      { label: "Interview Prep", href: "/dashboard/interviews",   icon: Target          },
+      { label: "Company Intel",  href: "/dashboard/companies",    icon: Building2       },
+      { label: "Recruiter CRM",  href: "/dashboard/recruiters",   icon: Users           },
+      { label: "Offer Tracker",  href: "/dashboard/offers",       icon: Trophy          },
+    ],
+  },
+  {
+    label: "Intelligence",
+    items: [
+      { label: "Resume Memory",  href: "/dashboard/memory",       icon: BrainCircuit    },
+      { label: "ATS Analytics",  href: "/dashboard/analytics",    icon: LineChart       },
+      { label: "Calendar",       href: "/dashboard/calendar",     icon: Calendar        },
+      { label: "Notes",          href: "/dashboard/notes",        icon: BookOpen        },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { label: "Settings",       href: "/dashboard/settings",     icon: Settings        },
+    ],
+  },
 ];
+
+// Flat list for mobile nav (keep existing compat)
+const ALL_NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
 // ── Context ───────────────────────────────────────────────────────────────────
 const SidebarContext = createContext<SidebarContextValue | null>(null);
@@ -81,7 +123,7 @@ function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
       onClick={onClick}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "group flex items-center gap-3 px-3 py-2.5 rounded-lg",
+        "group flex items-center gap-3 px-3 py-2 rounded-lg",
         "font-mono text-xs transition-all duration-150",
         "focus-visible:outline focus-visible:outline-2",
         "focus-visible:outline-offset-2 focus-visible:outline-accent",
@@ -92,7 +134,7 @@ function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
     >
       <Icon
         className={cn(
-          "h-4 w-4 flex-shrink-0 transition-colors duration-150",
+          "h-3.5 w-3.5 flex-shrink-0 transition-colors duration-150",
           isActive ? "text-text-accent" : "text-text-muted group-hover:text-text-primary"
         )}
         aria-hidden="true"
@@ -117,29 +159,43 @@ function DesktopSidebar() {
       aria-label="Main navigation"
     >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 py-5 border-b border-border">
+      <div className="flex items-center gap-2.5 px-4 py-4 border-b border-border">
         <div className="flex items-center justify-center w-7 h-7 rounded-md bg-accent-subtle border border-accent/30 flex-shrink-0">
           <Zap className="h-3.5 w-3.5 text-text-accent" aria-hidden="true" />
         </div>
-        <span className="font-mono text-sm font-bold text-text-primary tracking-widest">
-          RUFLOW
-        </span>
+        <div>
+          <span className="font-mono text-sm font-bold text-text-primary tracking-widest block leading-none">
+            CareerOS
+          </span>
+          <span className="font-mono text-[9px] text-text-muted tracking-widest uppercase leading-none">
+            AI Command Centre
+          </span>
+        </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5" aria-label="Dashboard navigation">
-        <p className="font-mono text-[9px] text-text-muted uppercase tracking-widest px-3 mb-3">
-          Workspace
-        </p>
-        {NAV_ITEMS.map((item) => (
-          <NavLink key={item.href} item={item} />
+      {/* Nav groups */}
+      <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto" aria-label="Dashboard navigation">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label}>
+            <p className="font-mono text-[9px] text-text-muted uppercase tracking-widest px-3 mb-1.5">
+              {group.label}
+            </p>
+            <div className="space-y-0.5">
+              {group.items.map((item) => (
+                <NavLink key={item.href} item={item} />
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
 
       {/* Footer */}
-      <div className="px-4 py-4 border-t border-border">
+      <div className="px-4 py-3 border-t border-border">
         <p className="font-mono text-[10px] text-text-muted">
           <span className="text-text-accent">●</span> All systems operational
+        </p>
+        <p className="font-mono text-[9px] text-text-muted mt-0.5 opacity-60">
+          CareerOS v2.0 · Hackathon Edition
         </p>
       </div>
     </aside>
@@ -181,13 +237,13 @@ function MobileSidebar() {
             aria-label="Mobile navigation"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-5 border-b border-border">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-border">
               <div className="flex items-center gap-2.5">
                 <div className="flex items-center justify-center w-7 h-7 rounded-md bg-accent-subtle border border-accent/30">
                   <Zap className="h-3.5 w-3.5 text-text-accent" aria-hidden="true" />
                 </div>
                 <span className="font-mono text-sm font-bold text-text-primary tracking-widest">
-                  RUFLOW
+                  CareerOS
                 </span>
               </div>
               <button
@@ -201,13 +257,22 @@ function MobileSidebar() {
             </div>
 
             {/* Nav */}
-            <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-              {NAV_ITEMS.map((item) => (
-                <NavLink key={item.href} item={item} onClick={close} />
+            <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-4">
+              {NAV_GROUPS.map((group) => (
+                <div key={group.label}>
+                  <p className="font-mono text-[9px] text-text-muted uppercase tracking-widest px-3 mb-1.5">
+                    {group.label}
+                  </p>
+                  <div className="space-y-0.5">
+                    {group.items.map((item) => (
+                      <NavLink key={item.href} item={item} onClick={close} />
+                    ))}
+                  </div>
+                </div>
               ))}
             </nav>
 
-            <div className="px-4 py-4 border-t border-border">
+            <div className="px-4 py-3 border-t border-border">
               <p className="font-mono text-[10px] text-text-muted">
                 <span className="text-text-accent">●</span> All systems operational
               </p>

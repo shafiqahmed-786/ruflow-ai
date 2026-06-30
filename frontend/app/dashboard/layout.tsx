@@ -1,5 +1,4 @@
-// frontend/components/dashboard/layout.tsx — CareerOS v2.0
-// Server Component — layout only. SidebarProvider (client) wraps children.
+// frontend/app/dashboard/layout.tsx — CareerOS v2.0
 import type { Metadata } from "next";
 import { SidebarProvider } from "@/components/dashboard/Sidebar";
 import { Sidebar }         from "@/components/dashboard/Sidebar";
@@ -7,7 +6,7 @@ import { Topbar }          from "@/components/dashboard/Topbar";
 
 export const metadata: Metadata = {
   title: "CareerOS AI — Command Centre",
-  description: "CareerOS AI — the complete AI-powered job search command centre. Manage applications, prepare for interviews, research companies, and track offers.",
+  description: "CareerOS AI — the complete AI-powered job search command centre.",
 };
 
 export default function DashboardLayout({
