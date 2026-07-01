@@ -1,91 +1,82 @@
 # backend/Dockerfile
-# ─────────────────────────────────────────────────────────────────────────────
-# RuFlow Backend — FastAPI + LangGraph multi-agent system
-# Base: python:3.11-slim  |  Final user: non-root (appuser:1001)
-# ─────────────────────────────────────────────────────────────────────────────
+# CareerOS AI — FastAPI + LangGraph multi-agent system
+#
+# Build context: REPO ROOT (not backend/)
+# docker-compose.yml must use: context: . (repo root)
+#
+# Internal imports use `from backend.xxx` throughout, so PYTHONPATH
+# must be the repo root — /app — with the backend/ package inside it.
+#
+# Stage 1: base  — OS deps + non-root user
+# Stage 2: deps  — pip install (separate layer for cache)
+# Stage 3: final — app code + runtime
+# ---------------------------------------------------------------------------
 
 FROM python:3.11-slim AS base
 
-# ── OS-level metadata ─────────────────────────────────────────────────────────
-LABEL maintainer="ruflow-team" \
-      version="0.1.0" \
-      description="RuFlow FastAPI backend"
+LABEL maintainer="careeros-team" \
+      version="2.0.0" \
+      description="CareerOS AI FastAPI backend"
 
-# ── System dependencies ───────────────────────────────────────────────────────
-# Install build tools needed for C-extension packages (e.g. pymupdf, numpy).
-# Curl is kept in the final image only for the HEALTHCHECK.
-# All build-time tooling is removed in the same RUN layer to keep image lean.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        gcc \
-        g++ \
-        build-essential \
-        libffi-dev \
-        libssl-dev \
-        curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+        gcc g++ build-essential libffi-dev libssl-dev curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# ── Non-root user ─────────────────────────────────────────────────────────────
 RUN groupadd --gid 1001 appgroup \
  && useradd  --uid 1001 --gid 1001 --no-create-home --shell /bin/false appuser
 
-# ── Working directory ─────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+FROM base AS deps
+
 WORKDIR /app
 
-# ── Python dependency installation (separate layer for cache efficiency) ──────
-# Copy only the requirements file first so this layer is rebuilt only when
-# requirements change, not on every code change.
-COPY requirements.txt ./
+# Copy only requirements for layer-cache efficiency
+COPY backend/requirements.txt ./backend/requirements.txt
 
 RUN pip install --upgrade pip --no-cache-dir \
- && pip install --no-cache-dir -r requirements.txt
+ && pip install --no-cache-dir -r backend/requirements.txt
 
-# ── Application code ──────────────────────────────────────────────────────────
-# Copy after deps so code changes don't invalidate the pip layer.
-COPY . .
+# ---------------------------------------------------------------------------
+FROM base AS final
 
-# ── Remove build tools post-install to slim the final image ───────────────────
-RUN apt-get purge -y --auto-remove \
-        gcc \
-        g++ \
-        build-essential \
-        libffi-dev \
-        libssl-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && find /app -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true \
-    && find /app -name "*.pyc" -delete
+WORKDIR /app
 
-# ── Runtime directories with correct ownership ────────────────────────────────
+# Copy installed packages from deps stage
+COPY --from=deps /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=deps /usr/local/bin /usr/local/bin
+
+# Copy only the backend package (keeps image lean — no frontend source)
+COPY backend/ ./backend/
+
+# Strip bytecode from source
+RUN find /app -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true \
+ && find /app -name "*.pyc" -delete
+
+# Runtime directories
 RUN mkdir -p /app/chroma_data /app/model_cache /app/logs \
  && chown -R appuser:appgroup /app
 
-# ── Switch to non-root ────────────────────────────────────────────────────────
 USER appuser
 
-# ── Port ──────────────────────────────────────────────────────────────────────
 EXPOSE 8000
 
-# ── Health check ──────────────────────────────────────────────────────────────
-# Retries=5 to allow time for embedding model warm-up on first start.
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
-    CMD curl -f http://localhost:8000/api/v1/health || exit 1
-
-# ── Environment defaults (overridden by docker-compose / k8s env) ─────────────
+# PYTHONPATH=/app means `import backend.main` resolves to /app/backend/main.py
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
     LOG_LEVEL=INFO \
-    WORKERS=2 \
+    WORKERS=1 \
     PORT=8000
 
-# ── Entrypoint ────────────────────────────────────────────────────────────────
-CMD ["sh", "-c", \
-     "uvicorn backend.main:app \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=5 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
+# LOG_LEVEL is already uppercased by settings validator; pass lowercase to uvicorn
+CMD uvicorn backend.main:app \
         --host 0.0.0.0 \
         --port ${PORT} \
         --workers ${WORKERS} \
-        --log-level ${LOG_LEVEL,,} \
+        --log-level info \
         --access-log \
         --proxy-headers \
-        --forwarded-allow-ips='*'"]
+        --forwarded-allow-ips='*'

@@ -1,6 +1,13 @@
-# render.yaml — CareerOS AI backend deployment on Render
-# Repository root is the working directory (no rootDir override).
-# The backend/ folder is a Python package imported as `backend.main`.
+# render.yaml — CareerOS AI backend deployment
+#
+# Render runs from the repo root. PYTHONPATH is set to /opt/render/project/src
+# so `from backend.xxx` resolves correctly.
+#
+# Required env vars to set manually in Render dashboard:
+#   GEMINI_API_KEY  — from https://aistudio.google.com/apikey
+#   MONGODB_URI     — MongoDB Atlas connection string
+#
+# All other vars have safe defaults below.
 
 services:
   - type: web
@@ -12,17 +19,17 @@ services:
     healthCheckPath: /health
     envVars:
       - key: GEMINI_API_KEY
-        sync: false          # set manually in Render dashboard
+        sync: false
       - key: MONGODB_URI
-        sync: false          # set manually (MongoDB Atlas connection string)
+        sync: false
       - key: SECRET_KEY
-        generateValue: true  # auto-generated
+        generateValue: true
+      - key: PYTHONPATH
+        value: /opt/render/project/src
       - key: CORS_ORIGINS
-        value: "https://careeros-ai.vercel.app,http://localhost:3000"
-      - key: CHROMA_HOST
-        value: localhost
-      - key: CHROMA_PORT
-        value: "8000"
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: careeros_db
       - key: MODEL_STRONG
         value: gemini-2.0-flash
       - key: MODEL_FAST
@@ -31,3 +38,7 @@ services:
         value: INFO
       - key: WORKERS
         value: "1"
+      - key: CHROMA_HOST
+        value: localhost
+      - key: CHROMA_PORT
+        value: "8000"

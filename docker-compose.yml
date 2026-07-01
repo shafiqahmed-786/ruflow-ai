@@ -1,15 +1,18 @@
 # docker-compose.yml
 # CareerOS AI — single-command local deployment
+#
 # Usage:
-#   cp .env.example .env   # fill in GEMINI_API_KEY
+#   cp .env.example .env          # fill in GEMINI_API_KEY
 #   docker compose up --build
-# ─────────────────────────────────────────────────────────────────────────────
+#
+# Services: mongo (27017) · chroma (8001→8000) · backend (8080→8000) · frontend (3000)
+# ---------------------------------------------------------------------------
 
 version: "3.9"
 
 services:
 
-  # ── MongoDB ─────────────────────────────────────────────────────────────────
+  # ── MongoDB ────────────────────────────────────────────────────────────────
   mongo:
     image: mongo:7.0
     container_name: careeros_mongo
@@ -27,7 +30,7 @@ services:
       start_period: 30s
       retries: 5
 
-  # ── ChromaDB ────────────────────────────────────────────────────────────────
+  # ── ChromaDB ───────────────────────────────────────────────────────────────
   chroma:
     image: ghcr.io/chroma-core/chroma:0.4.24
     container_name: careeros_chroma
@@ -47,28 +50,31 @@ services:
       start_period: 20s
       retries: 5
 
-  # ── FastAPI Backend ──────────────────────────────────────────────────────────
+  # ── FastAPI Backend ────────────────────────────────────────────────────────
+  # Build context is REPO ROOT so `backend/` is copied as a package.
+  # PYTHONPATH=/app → `from backend.xxx` resolves to /app/backend/xxx.
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .                      # repo root — required for backend.xxx imports
+      dockerfile: backend/Dockerfile
     container_name: careeros_backend
     restart: unless-stopped
     ports:
       - "8080:8000"
     env_file:
-      - .env
+      - .env                          # provides GEMINI_API_KEY at minimum
     environment:
-      # Docker-internal DB hostnames override .env values
-      MONGODB_URI:          mongodb://mongo:27017
-      MONGODB_DB_NAME:      careeros_db
-      CHROMA_HOST:          chroma
-      CHROMA_PORT:          "8000"
-      CHROMA_PERSIST_DIR:   /app/chroma_data
-      EMBEDDING_CACHE_DIR:  /app/model_cache
-      LOG_LEVEL:            INFO
-      WORKERS:              "2"
-      DEBUG:                "false"
+      # Docker-internal hostnames override any .env values for DBs
+      MONGODB_URI:         mongodb://mongo:27017
+      MONGODB_DB_NAME:     careeros_db
+      CHROMA_HOST:         chroma
+      CHROMA_PORT:         "8000"
+      CHROMA_PERSIST_DIR:  /app/chroma_data
+      EMBEDDING_CACHE_DIR: /app/model_cache
+      CORS_ORIGINS:        "http://localhost:3000"
+      LOG_LEVEL:           INFO
+      WORKERS:             "1"
+      DEBUG:               "false"
     volumes:
       - chroma_data:/app/chroma_data
       - model_cache:/app/model_cache
@@ -82,26 +88,26 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
-      start_period: 90s
+      start_period: 120s              # allow time for embedding model warm-up
       retries: 5
 
-  # ── Next.js Frontend ─────────────────────────────────────────────────────────
+  # ── Next.js Frontend ──────────────────────────────────────────────────────
+  # NEXT_PUBLIC_API_URL is baked at BUILD time by Next.js.
+  # Pass it as a build arg so it is available during `next build`.
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080   # browser-accessible backend
     container_name: careeros_frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      # Browser-side URL (must be reachable from user's machine)
-      NEXT_PUBLIC_API_URL: http://localhost:8080
-      # Server-side URL (internal Docker network)
-      API_URL:             http://backend:8000
-      NODE_ENV:            production
-      PORT:                "3000"
-      HOSTNAME:            "0.0.0.0"
+      NODE_ENV:  production
+      PORT:      "3000"
+      HOSTNAME:  "0.0.0.0"
     depends_on:
       backend:
         condition: service_healthy
@@ -112,7 +118,7 @@ services:
       start_period: 30s
       retries: 3
 
-# ── Named volumes ──────────────────────────────────────────────────────────────
+# ── Named volumes ──────────────────────────────────────────────────────────
 volumes:
   mongo_data:
   chroma_data:

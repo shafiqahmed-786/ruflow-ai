@@ -1,16 +1,9 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/.next",
-  "installCommand": "cd frontend && npm install",
   "framework": "nextjs",
-  "rewrites": [
-    {
-      "source": "/api/v1/:path*",
-      "destination": "https://careeros-api.onrender.com/api/v1/:path*"
-    }
-  ],
-  "env": {
-    "NEXT_PUBLIC_API_URL": "@careeros_api_url"
-  }
+  "rootDirectory": "frontend",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": ".next",
+  "regions": ["sin1"]
 }
