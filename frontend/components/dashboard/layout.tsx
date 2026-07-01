@@ -1,35 +1,5 @@
-// frontend/components/dashboard/layout.tsx — CareerOS v2.0
-// Server Component — layout only. SidebarProvider (client) wraps children.
-import type { Metadata } from "next";
-import { SidebarProvider } from "@/components/dashboard/Sidebar";
-import { Sidebar }         from "@/components/dashboard/Sidebar";
-import { Topbar }          from "@/components/dashboard/Topbar";
-
-export const metadata: Metadata = {
-  title: "CareerOS AI — Command Centre",
-  description: "CareerOS AI — the complete AI-powered job search command centre. Manage applications, prepare for interviews, research companies, and track offers.",
-};
-
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <SidebarProvider>
-      <div className="flex h-screen overflow-hidden bg-background">
-        <Sidebar />
-        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-          <Topbar />
-          <main
-            className="flex-1 overflow-y-auto p-5 md:p-6"
-            id="main-content"
-            aria-label="Dashboard content"
-          >
-            {children}
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
-  );
-}
+// frontend/components/dashboard/layout.tsx
+// NOTE: This file is intentionally minimal.
+// The actual Next.js layout lives at app/dashboard/layout.tsx.
+// This file exists for legacy import compatibility only.
+export {};

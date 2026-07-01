@@ -159,7 +159,7 @@ function InsightCard({
           </span>
 
           <Link
-            href="/blog"
+            href="/"
             aria-label={`Read: ${insight.title}`}
             className="
               inline-flex items-center gap-1
@@ -237,7 +237,7 @@ export function InsightsSection() {
             transition={{ duration: 0.4, delay: 0.12 }}
           >
             <Link
-              href="/blog"
+              href="/"
               className="
                 inline-flex items-center gap-1.5
                 font-mono text-xs

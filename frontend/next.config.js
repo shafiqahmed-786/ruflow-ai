@@ -3,6 +3,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+
+  // Required for Docker standalone deployment (frontend/Dockerfile stage 3)
+  output: "standalone",
+
   async rewrites() {
     return [
       {
@@ -11,6 +15,7 @@ const nextConfig = {
       },
     ];
   },
+
   experimental: {
     typedRoutes: false,
   },

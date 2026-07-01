@@ -48,7 +48,7 @@ export function Topbar({ title = "Overview", subtitle }: TopbarProps) {
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5">
           <span className="font-mono text-[11px] text-text-muted hidden sm:block">
-            RuFlow
+            CareerOS
           </span>
           <ChevronRight
             className="h-3 w-3 text-text-muted hidden sm:block"

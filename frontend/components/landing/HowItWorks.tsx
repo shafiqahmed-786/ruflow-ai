@@ -19,7 +19,7 @@ const STEPS: Step[] = [
     icon:   <Upload size={22} />,
     title:  "Upload Resume + JD",
     description:
-      "Paste your resume and the target job description. RuFlow ingests, parses, and structures both documents into machine-readable context.",
+      "Paste your resume and the target job description. CareerOS AI ingests, parses, and structures both documents into machine-readable context.",
     details: [
       "PDF or plain text supported",
       "Structured extraction via PyMuPDF",

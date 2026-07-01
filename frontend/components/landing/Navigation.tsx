@@ -121,7 +121,7 @@ export function Navigation() {
               href="/"
               onClick={close}
               className="flex items-center gap-2.5 flex-shrink-0"
-              aria-label="RuFlow home"
+              aria-label="CareerOS AI home"
             >
               <div className="flex items-center justify-center w-7 h-7 rounded-md bg-accent-subtle border border-accent/30">
                 <Zap className="h-3.5 w-3.5 text-text-accent" aria-hidden="true" />

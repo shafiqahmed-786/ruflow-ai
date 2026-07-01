@@ -92,7 +92,7 @@ export function CTAFooter() {
               </Button>
 
               <Button
-                href="/docs"
+                href="/dashboard/docs"
                 variant="secondary"
                 size="lg"
                 className="w-full sm:w-auto"

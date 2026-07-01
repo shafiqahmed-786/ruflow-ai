@@ -1,0 +1,33 @@
+# render.yaml — CareerOS AI backend deployment on Render
+# Repository root is the working directory (no rootDir override).
+# The backend/ folder is a Python package imported as `backend.main`.
+
+services:
+  - type: web
+    name: careeros-api
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT --workers 1 --log-level info
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false          # set manually in Render dashboard
+      - key: MONGODB_URI
+        sync: false          # set manually (MongoDB Atlas connection string)
+      - key: SECRET_KEY
+        generateValue: true  # auto-generated
+      - key: CORS_ORIGINS
+        value: "https://careeros-ai.vercel.app,http://localhost:3000"
+      - key: CHROMA_HOST
+        value: localhost
+      - key: CHROMA_PORT
+        value: "8000"
+      - key: MODEL_STRONG
+        value: gemini-2.0-flash
+      - key: MODEL_FAST
+        value: gemini-2.0-flash-lite
+      - key: LOG_LEVEL
+        value: INFO
+      - key: WORKERS
+        value: "1"

@@ -21,7 +21,7 @@ const TESTIMONIALS: Testimonial[] = [
     name:        "Aarav Sharma",
     role:        "ML Engineer",
     company:     "Applied AI Startup",
-    quote:       "RuFlow improved my ATS score from 61 to 89 and completely changed how I approach applications.",
+    quote:       "CareerOS AI improved my ATS score from 61 to 89 and completely changed how I approach applications.",
     improvement: "+28 ATS",
   },
   {

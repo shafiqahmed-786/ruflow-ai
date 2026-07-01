@@ -208,7 +208,7 @@ export function WhyRuFlow() {
             transition={{ duration: 0.4, delay: 0.06 }}
             className="text-3xl font-bold tracking-tight text-text-primary sm:text-4xl"
           >
-            Why RuFlow is different
+            Why CareerOS AI is different
           </motion.h2>
 
           <motion.p

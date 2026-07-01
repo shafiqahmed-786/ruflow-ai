@@ -108,7 +108,7 @@ function DashboardPreview() {
         <span className="w-3 h-3 rounded-full bg-amber-500/70" />
         <span className="w-3 h-3 rounded-full bg-emerald-500/70" />
         <span className="ml-3 font-mono text-[11px] text-[#888888] tracking-wider">
-          ruflow — pipeline execution
+          careeros — pipeline execution
         </span>
         <span className="ml-auto flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-[#10a37f] animate-pulse" />

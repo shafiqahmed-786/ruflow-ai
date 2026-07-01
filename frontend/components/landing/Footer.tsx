@@ -129,7 +129,7 @@ export function Footer() {
         <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Hardcoded year — avoids new Date() hydration mismatch */}
           <p className="font-mono text-[10px] text-text-muted">
-            © 2024 RuFlow. All rights reserved.
+            © 2025 CareerOS AI. All rights reserved.
           </p>
 
           <div className="flex items-center gap-1.5">
