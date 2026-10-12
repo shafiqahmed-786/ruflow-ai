@@ -296,7 +296,9 @@ class MemoryOptimizer:
                 self._stats["cache_misses"] += 1
                 return None
 
-            # Move to end (most-recently-used)
+            # Refresh the TTL on a hit so frequently-used entries stay warm
+            # instead of expiring on a stale creation timestamp.
+            entry.created_at = time.monotonic()
             self._cache.move_to_end(key)
             entry.hits += 1
             self._stats["cache_hits"] += 1
@@ -305,6 +307,10 @@ class MemoryOptimizer:
     async def cache_set(self, key: str, value: Any) -> None:
         """Insert or update a cache entry, evicting LRU entries if at capacity."""
         async with self._cache_lock:
+            expired = [k for k, entry in self._cache.items() if entry.age_seconds > self._cache_ttl]
+            for expired_key in expired:
+                del self._cache[expired_key]
+
             if key in self._cache:
                 self._cache.move_to_end(key)
                 self._cache[key] = CacheEntry(value=value)

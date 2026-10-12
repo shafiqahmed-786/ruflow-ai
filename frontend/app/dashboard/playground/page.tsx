@@ -146,6 +146,7 @@ const AGENT_EVENTS: AgentEvent[] = [
   { id: 8, ts: "00:12.900", agent: "Evaluator",     event: "Score 87.0 — passed",           status: "done"    },
   { id: 9, ts: "00:14.800", agent: "Packager",      event: "Output persisted",              status: "done"    },
 ];
+const AGENT_EVENT_BY_ID = new Map<number, AgentEvent>(AGENT_EVENTS.map((event) => [event.id, event]));
 
 // Stage timing sequence (ms delay for each stage to flip to "running" then "done")
 const STAGE_TIMINGS = [900, 1900, 3200, 8100, 10200, 14700];
@@ -598,8 +599,7 @@ export default function PlaygroundPage() {
     LOG_SCRIPT.forEach((line, i) => {
       const t = setTimeout(() => {
         setConsoleLines((p) => [...p, { ...line, id: i }]);
-        // Parse agent events from log
-        const match = AGENT_EVENTS.find((e) => e.id === i + 1);
+        const match = AGENT_EVENT_BY_ID.get(i + 1);
         if (match) setAgentEvents((p) => [...p, match]);
       }, 300 + i * 750);
       timersRef.current.push(t);

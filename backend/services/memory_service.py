@@ -70,11 +70,43 @@ class MongoMemoryClient:
         try:
             await self._client.admin.command("ping")
             self._verified = True
+            await self._ensure_indexes()
             logger.info("MongoDB connected: %s / %s", cfg.mongodb_uri, cfg.mongodb_db_name)
         except (ConnectionFailure, ServerSelectionTimeoutError) as exc:
             self._client = None
             self._db = None
             raise RuntimeError(f"Cannot connect to MongoDB at {cfg.mongodb_uri}: {exc}") from exc
+
+    async def _ensure_indexes(self) -> None:
+        """Create the database indexes used by the hot-path read queries."""
+        if not self._db:
+            return
+
+        await self._applications.create_index(
+            [("session_id", 1), ("timestamp", -1)],
+            name="session_history_idx",
+        )
+        await self._applications.create_index(
+            [("user_id", 1), ("timestamp", -1)],
+            name="user_history_idx",
+        )
+        await self._applications.create_index(
+            [("company", 1), ("timestamp", -1)],
+            name="company_history_idx",
+        )
+        await self._applications.create_index(
+            [("jd_role", 1), ("timestamp", -1)],
+            name="role_history_idx",
+        )
+        await self._applications.create_index(
+            [("timestamp", -1)],
+            name="recent_applications_idx",
+        )
+        await self._sessions.create_index(
+            [("session_id", 1)],
+            unique=True,
+            name="session_lookup_idx",
+        )
 
     @property
     def _applications(self) -> motor.AsyncIOMotorCollection:
@@ -95,6 +127,7 @@ class MongoMemoryClient:
         iterations: int,
         resume_snapshot: str,
         cover_snapshot: str,
+        user_id: Optional[str] = None,
         extra_meta: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
@@ -108,6 +141,7 @@ class MongoMemoryClient:
             iterations: Number of improvement loops run.
             resume_snapshot: Final tailored resume (Markdown).
             cover_snapshot: Final cover letter (plain text).
+            user_id: The owning user identifier used for scoped history queries.
             extra_meta: Any additional key-value metadata.
 
         Returns:
@@ -117,6 +151,7 @@ class MongoMemoryClient:
 
         doc: Dict[str, Any] = {
             "session_id": session_id,
+            "user_id": (user_id or "").strip(),
             "jd_role": jd_role,
             "company": company,
             "final_scores": dict(final_scores),
@@ -143,6 +178,7 @@ class MongoMemoryClient:
         session_id: Optional[str] = None,
         company: Optional[str] = None,
         jd_role: Optional[str] = None,
+        user_id: Optional[str] = None,
         limit: int = 10,
     ) -> List[PastApplication]:
         """
@@ -155,6 +191,7 @@ class MongoMemoryClient:
             session_id: Filter by exact session ID.
             company: Filter by company name (case-insensitive).
             jd_role: Filter by role title (case-insensitive).
+            user_id: Filter by the owning user identifier.
             limit: Maximum number of records to return.
 
         Returns:
@@ -169,6 +206,8 @@ class MongoMemoryClient:
             query["company"] = {"$regex": company, "$options": "i"}
         if jd_role:
             query["jd_role"] = {"$regex": jd_role, "$options": "i"}
+        if user_id:
+            query["user_id"] = str(user_id).strip()
 
         try:
             cursor = (
@@ -185,6 +224,7 @@ class MongoMemoryClient:
         for doc in docs:
             results.append(
                 PastApplication(
+                    user_id=doc.get("user_id", ""),
                     session_id=doc.get("session_id", ""),
                     jd_role=doc.get("jd_role", ""),
                     company=doc.get("company", ""),
@@ -478,6 +518,7 @@ class MemoryService:
         iterations: int,
         resume_snapshot: str,
         cover_snapshot: str,
+        user_id: Optional[str] = None,
         resume_embedding: Optional[List[float]] = None,
         jd_embedding: Optional[List[float]] = None,
         extra_meta: Optional[Dict[str, Any]] = None,
@@ -496,6 +537,7 @@ class MemoryService:
             iterations=iterations,
             resume_snapshot=resume_snapshot,
             cover_snapshot=cover_snapshot,
+            user_id=user_id,
             extra_meta=extra_meta,
         )
 
@@ -520,6 +562,7 @@ class MemoryService:
         session_id: Optional[str] = None,
         company: Optional[str] = None,
         jd_role: Optional[str] = None,
+        user_id: Optional[str] = None,
         limit: int = 10,
     ) -> List[PastApplication]:
         """Delegate to MongoMemoryClient.retrieve_past_applications()."""
@@ -527,6 +570,7 @@ class MemoryService:
             session_id=session_id,
             company=company,
             jd_role=jd_role,
+            user_id=user_id,
             limit=limit,
         )
 
