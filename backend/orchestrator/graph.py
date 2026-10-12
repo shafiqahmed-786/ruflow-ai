@@ -717,6 +717,8 @@ async def output_packager(state: AgentState) -> AgentState:
         logger.warning("[packager] embedding failed: %s", exc)
         errors.append(f"packager: embedding — {exc}")
 
+    user_id = (state.get("session_memory") or {}).get("user_id")
+
     try:
         await memory.store_application(
             session_id=state["session_id"],
@@ -726,6 +728,7 @@ async def output_packager(state: AgentState) -> AgentState:
             iterations=state.get("iteration_count", 0),
             resume_snapshot=state.get("tailored_resume", ""),
             cover_snapshot=state.get("cover_letter", ""),
+            user_id=user_id,
             resume_embedding=resume_embedding,
         )
     except Exception as exc:

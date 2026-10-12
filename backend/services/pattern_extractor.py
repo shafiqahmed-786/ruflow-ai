@@ -18,7 +18,8 @@ import asyncio
 import logging
 import math
 import re
-from collections import Counter
+from collections import Counter, OrderedDict
+from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -181,11 +182,16 @@ class PatternExtractor:
         high_score_threshold: float = 75.0,
         max_keyword_length:   int   = 4,
         min_keyword_freq:     int   = 2,
+        keyword_cache_size:   int = 256,
     ) -> None:
         self._memory              = memory_service or get_memory_service()
         self._high_score          = high_score_threshold
         self._max_kw_length       = max_keyword_length
         self._min_freq            = min_keyword_freq
+        self._keyword_cache: OrderedDict[Tuple[str, float, int], List[KeywordPattern]] = OrderedDict()
+        self._tone_cache: OrderedDict[str, TonePattern] = OrderedDict()
+        self._structure_cache: OrderedDict[str, StructurePattern] = OrderedDict()
+        self._keyword_cache_size  = keyword_cache_size
 
     # ------------------------------------------------------------------
     # Public synchronous extraction methods
@@ -217,6 +223,12 @@ class PatternExtractor:
         """
         if not resume or not resume.strip():
             return []
+
+        cache_key = (resume.strip(), round(score, 2), top_n)
+        cached = self._keyword_cache.get(cache_key)
+        if cached is not None:
+            self._keyword_cache.move_to_end(cache_key)
+            return deepcopy(cached)
 
         score_weight = max(0.1, score / 100.0)
         text         = re.sub(r"[^\w\s\-/+#.]", " ", resume.lower())
@@ -274,7 +286,14 @@ class PatternExtractor:
 
         # Sort by weighted score
         patterns.sort(key=lambda p: p.avg_score, reverse=True)
-        return patterns[:top_n]
+
+        final_patterns = patterns[:top_n]
+        self._keyword_cache[cache_key] = final_patterns
+        self._keyword_cache.move_to_end(cache_key)
+        while len(self._keyword_cache) > self._keyword_cache_size:
+            self._keyword_cache.popitem(last=False)
+
+        return deepcopy(final_patterns)
 
     def extract_tone_markers(self, text: str) -> TonePattern:
         """
@@ -295,6 +314,12 @@ class PatternExtractor:
         """
         if not text:
             return TonePattern([], [], [], 0, 0.0)
+
+        text_key = text.strip()
+        cached = self._tone_cache.get(text_key)
+        if cached is not None:
+            self._tone_cache.move_to_end(text_key)
+            return deepcopy(cached)
 
         # Action verbs
         action_verb_matches = _ACTION_VERB_RE.findall(text)
@@ -327,13 +352,19 @@ class PatternExtractor:
         else:
             avg_sentence_len = 0.0
 
-        return TonePattern(
+        result = TonePattern(
             action_verbs        = action_verbs,
             quantifier_phrases  = quantifier_phrases,
             leadership_markers  = leadership_markers,
             passive_voice_count = passive_count,
             avg_sentence_length = avg_sentence_len,
         )
+        self._tone_cache[text_key] = result
+        self._tone_cache.move_to_end(text_key)
+        while len(self._tone_cache) > self._keyword_cache_size:
+            self._tone_cache.popitem(last=False)
+
+        return deepcopy(result)
 
     def extract_structure_patterns(self, resume: str) -> StructurePattern:
         """
@@ -354,6 +385,12 @@ class PatternExtractor:
         """
         if not resume:
             return StructurePattern(0, 0, 0.0, 0, False, False, 0, 0.0)
+
+        resume_key = resume.strip()
+        cached = self._structure_cache.get(resume_key)
+        if cached is not None:
+            self._structure_cache.move_to_end(resume_key)
+            return deepcopy(cached)
 
         bullets = _BULLET_RE.findall(resume)
         bullet_count = len(bullets)
@@ -376,7 +413,7 @@ class PatternExtractor:
             round(quantified_count / bullet_count, 3) if bullet_count > 0 else 0.0
         )
 
-        return StructurePattern(
+        result = StructurePattern(
             bullet_count        = bullet_count,
             quantified_bullets  = quantified_count,
             avg_bullet_length   = avg_bullet_len,
@@ -386,6 +423,12 @@ class PatternExtractor:
             total_word_count    = word_count,
             quantification_rate = quantification_rate,
         )
+        self._structure_cache[resume_key] = result
+        self._structure_cache.move_to_end(resume_key)
+        while len(self._structure_cache) > self._keyword_cache_size:
+            self._structure_cache.popitem(last=False)
+
+        return deepcopy(result)
 
     # ------------------------------------------------------------------
     # Async DB methods

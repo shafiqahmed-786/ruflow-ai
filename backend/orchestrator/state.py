@@ -121,6 +121,7 @@ class EvalScores(TypedDict, total=False):
 class PastApplication(TypedDict, total=False):
     """A persisted application record retrieved from long-term memory."""
 
+    user_id: str
     session_id: str
     jd_role: str
     company: str

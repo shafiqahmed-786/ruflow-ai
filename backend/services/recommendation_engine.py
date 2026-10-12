@@ -129,8 +129,8 @@ class RecommendationEngine:
         avg_score    = round(sum(scores) / len(scores), 2) if scores else 0.0
         trend        = self._linear_trend(scores) if len(scores) >= _MIN_RECORDS_FOR_TREND else 0.0
 
-        top_keywords  = await self.get_top_keywords(user_id, limit=15)
-        failed_patterns = await self.get_failed_patterns(user_id)
+        top_keywords  = await self.get_top_keywords(user_id, limit=15, records=records)
+        failed_patterns = await self.get_failed_patterns(user_id, records=records)
 
         return UserAnalysis(
             total_applications      = total,
@@ -142,7 +142,12 @@ class RecommendationEngine:
             failed_patterns         = failed_patterns,
         )
 
-    async def get_top_keywords(self, user_id: str, limit: int = 10) -> List[str]:
+    async def get_top_keywords(
+        self,
+        user_id: str,
+        limit: int = 10,
+        records: Optional[List[Dict[str, Any]]] = None,
+    ) -> List[str]:
         """
         Return the most frequent keywords found in high-scoring resumes
         for this user.
@@ -160,7 +165,7 @@ class RecommendationEngine:
         Returns:
             List of keyword strings ordered by frequency descending.
         """
-        records = await self._fetch_user_records(user_id)
+        records = records if records is not None else await self._fetch_user_records(user_id)
         successful = [
             r for r in records
             if self._overall(r) >= self._threshold
@@ -180,7 +185,11 @@ class RecommendationEngine:
 
         return [kw for kw, _ in combined.most_common(limit)]
 
-    async def get_failed_patterns(self, user_id: str) -> List[str]:
+    async def get_failed_patterns(
+        self,
+        user_id: str,
+        records: Optional[List[Dict[str, Any]]] = None,
+    ) -> List[str]:
         """
         Identify patterns common in low-scoring applications.
 
@@ -194,7 +203,7 @@ class RecommendationEngine:
         Returns:
             List of human-readable pattern descriptions.
         """
-        records = await self._fetch_user_records(user_id)
+        records = records if records is not None else await self._fetch_user_records(user_id)
         if not records:
             return []
 
@@ -468,11 +477,10 @@ class RecommendationEngine:
             return cached  # type: ignore[return-value]
 
         try:
-            records = await self._memory.retrieve_past_applications(limit=100)
-            # Filter by user_id stored in session_memory (best-effort)
-            # In the current schema user_id is not a top-level field, so we return all
-            # and rely on the caller's user_id for context.
-            # If user partitioning is needed, store user_id in the doc at write time.
+            records = await self._memory.retrieve_past_applications(
+                user_id=user_id,
+                limit=100,
+            )
             await self._optimizer.cache_set(cache_key, records)
             return records
         except Exception as exc:

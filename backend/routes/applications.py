@@ -433,7 +433,7 @@ async def get_application(session_id: str) -> ApplicationResponse:
 
     return ApplicationResponse(
         session_id   = record.get("session_id", session_id),
-        user_id      = "",           # not stored in PastApplication
+        user_id      = record.get("user_id", ""),
         status       = EvalStatus.PASSED.value,
         scores       = scores,
         resume       = record.get("resume_snapshot") or "",
@@ -463,10 +463,9 @@ async def list_user_applications(
     """
     Return a paginated list of past applications associated with ``user_id``.
 
-    Note: user_id filtering is best-effort — if the application was submitted
-    without a user_id in session_memory it will not appear in these results.
-    The underlying query uses a company/role regex filter to return any records
-    matching the user_id stored in the application metadata.
+    Applications are filtered by the persisted ``user_id`` value stored with each
+    record, so the query only scans the current user's history instead of all
+    stored applications.
     """
     if not user_id.strip():
         raise HTTPException(
@@ -476,7 +475,10 @@ async def list_user_applications(
 
     try:
         memory  = get_memory_service()
-        records = await memory.retrieve_past_applications(limit=limit)
+        records = await memory.retrieve_past_applications(
+            user_id=user_id,
+            limit=limit,
+        )
     except Exception as exc:
         logger.error("[GET /applications/user/%s] memory error: %s", user_id, exc)
         raise HTTPException(
